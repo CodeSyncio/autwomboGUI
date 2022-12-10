@@ -1,0 +1,6 @@
+customtkinter
+requests
+pillow
+colorama
+selenium
+
