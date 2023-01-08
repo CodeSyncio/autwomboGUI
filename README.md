@@ -1,5 +1,5 @@
 # AutWomboGUI
-
+# CURRENTLY DOES NOT WORK DUE TO SITE CHANGES, BEING WORKED ON
 ## Table of Contents
 + [About](#about)
 + [Installing](#installing)
