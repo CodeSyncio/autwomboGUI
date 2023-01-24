@@ -3,23 +3,14 @@ import os;import random;import threading;import time
 import customtkinter
 import webbrowser
 from urllib.parse import urlparse, unquote
-import requests;from io import BytesIO;import threading;from PIL import Image as PILIMAGE;from colorama import init,Fore;from selenium import webdriver;from selenium.webdriver.common.by import By;from selenium.webdriver.support import expected_conditions as EC;from selenium.webdriver.support.ui import WebDriverWait;from selenium.webdriver.common.action_chains import ActionChains;from selenium import webdriver;from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
-#----------<CONFIG>----------#
-FIREFOX_PATH = f"{os.getcwd()}\\dependencies\\firefox\\waterfox.exe"
-GECKODRIVER_PATH = f"{os.getcwd()}\\dependencies\\gecko\\geckodriver.exe"
-VERS = "v2.0.5"
+import requests;import threading;from colorama import init,Fore
+
+#tkinter theme
 customtkinter.set_appearance_mode("System") 
 customtkinter.set_default_color_theme("dark-blue")  
 
 #static values
-APIKEY ="AIzaSyDCvp5MTJLUdtBYEKYWXJrlLzu1zuKM6Xw"
-XPATH_TEXT_FIELD = '//*[@id="blur-overlay"]/div/div/div[1]/div[1]/div[1]/div[1]/div[1]/input'
-XPATH_IMG_STYLE = '//img[@class="Thumbnail__StyledThumbnail-sc-p7nt3c-0 hxvLKC"'
-XPATH_IMG_STYLES_CONTAINER = '//div[@class="Thumbnail__StyledThumbnailContainer-sc-p7nt3c-1 gqZQZu"]'
-XPATH_BTN_GENERATE = '//*[@id="blur-overlay"]/div/div/div/div[2]/button'
-XPATH_RESULT_IMG = '//img[@class="ArtCard__CardImage-sc-67t09v-2 dOXnUm"]'
-XPATH_BTN_GO_BACK = '//*[@id="blur-overlay"]/div/div/div[1]/div[1]/div/button'
-CROP_COORDINATES = (81, 232, 999, 1756)
+VERS = "v2.0.5"
 STYLES = sorted(['realistic', 'expressionism', 'figure', 'hdr', 'spectral',
           'comic', 'soft touch', 'splatter', 'flora', 'diorama',
           'abstract', 'fantastical', 'vector', 'bad trip', 'cartoonist',
@@ -85,7 +76,6 @@ STYLE_IDS={"realistic":32,
            "ukiyoe":2
            }
 
-
 def createToken():
     global APIKEY
     s = requests.Session()
@@ -96,7 +86,9 @@ def createToken():
     })
     r2 = s.post("https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={}".format(APIKEY))
     return r2.json() if r.status_code == 200 else r.status_code
+
 TOKEN = createToken()['idToken']
+
 def ToWebHook(data,path):
     if len(GUIHook.get()) !=0:
         fp = open(path,'rb')
@@ -104,29 +96,16 @@ def ToWebHook(data,path):
         fp.close()
     else:
         pass
-    
-def get_element_from_xpath( xpath, dr,timeout=30):
-    return WebDriverWait(dr, timeout).until(EC.presence_of_element_located((By.XPATH, xpath)))
 
-def crop_an_save_image( image_src, style, item,fn):
-        image_name = item.replace(" ", "_").lower()
-        nb_of_same_images = len([name for name in os.listdir(os.getcwd()+'\\'+fn) if name.split("-")[0] == image_name])
-        image_name = image_name + "-" + str(nb_of_same_images) + ".png"
-        image = PILIMAGE.open(BytesIO(requests.get(image_src).content))
-        image = image.crop(CROP_COORDINATES)
-        image.save(f"{fn}/{image_name}")
-        
-        ToWebHook(f"**input**: `{image_name}` | **style**: `{style}` | **iter** : `{str(nb_of_same_images)}` | **Generation time** : ``",f"{fn}/{image_name}",GUIHook.get())
 def downloadFile(url):
     return open(unquote(urlparse(url).path.split("/")[-1]), "wb").write(requests.get(url).content)
 def checkstat(idparam):
     return requests.get(f"https://paint.api.wombo.ai/api/tasks/{idparam}", headers={"authorization": "bearer " + str(TOKEN)}).json()
 
 def grab(text,style,fn,amount):
-    
-    import requests
     r1=requests.post("https://paint.api.wombo.ai/api/v2/tasks", json={"is_premium":False,"input_spec":{"prompt":text,"style":STYLE_IDS[style.lower()],"display_freq":10}},
-            headers={"authorization": "bearer " + str(TOKEN), "Content-Type": "text/plain;charset=UTF-8"}).json()
+            headers={"authorization": "bearer " + str(TOKEN),
+                     "Content-Type": "text/plain;charset=UTF-8"}).json()
     time.sleep(2)
     while True:
         time.sleep(0.5)
@@ -136,27 +115,20 @@ def grab(text,style,fn,amount):
     print(r1['id'])
     time.sleep(10)
     r2 = requests.get(f"https://paint.api.wombo.ai/api/tasks/{r1['id']}", headers={"authorization": "bearer " + str(TOKEN)}).json()
-    
-    
     downloadurl=r2['result']['final']
     imagefile = requests.get(downloadurl)
     image_name = text.replace(" ", "_").lower()
     image_name = image_name + "-" + str(amount)
     with open(f"{os.getcwd()}\\{fn}\\{image_name}.jpg",'wb') as f:
         f.write(imagefile.content)
-    
     if GUIHook.get() !="":
         ToWebHook(f"**input**: `{image_name}` | **style**: `{style}` | **iter** : `{str(amount)}`",f"{os.getcwd()}\\{fn}\\{image_name}.jpg")
-    
 
 def GetAIImages():
-    
     global mandethrottle
-    global togglenotif
     display_text.set(f'>starting generation with settings:prompt = {GUIprompt.get()} | Amount = {str(GUIamount.get())} | style = {GUIstyle.get()} | Folder name = {GUIfoldername.get()}')
     time.sleep(3)
     init(autoreset=True)
-    
     print(Fore.LIGHTBLACK_EX+f"{', '.join(STYLES)}")
     style = GUIstyle.get()
     text = GUIprompt.get()
@@ -170,15 +142,12 @@ def GetAIImages():
         if emergencystop == True:
             display_text.set('>child received termination instructions')
             break
-        
-        
         display_text.set(f">Generating image [{i+1}]  ({str(round((i+1)/int(am)*100))}%)")
         threading.Thread(target=grab,args=((text),(style),(fn),(i))).start()
         if int(am) <=10:
             pass
         else:
             time.sleep(0.5)
-        
     display_text.set('>Done generating images')
     time.sleep(5)
     display_text.set(f">styles:{', '.join(STYLES)}")
@@ -186,23 +155,20 @@ def GetAIImages():
 def hardterm():
     global emergencystop
     emergencystop = True
-    
     display_text.set('>hard termination done')
 
 def startproc():
     if len(GUIprompt.get()) != 0 and len(GUIamount.get())!=0 and len(GUIfoldername.get())!=0 and len(GUIfoldername.get())!=0 and len(GUIstyle.get())!=0:
         threading.Thread(target=GetAIImages,args=()).start()
-        
     else:
         display_text.set('>please fill in the PROMPT , AMOUNT , STYLE and FOLDER_NAME')
 
 def starttermproc():
     threading.Thread(target=hardterm,args=()).start()
+    
 def openbrowser():
+    
     webbrowser.open('https://github.com/CodeSyncio')
-def dethrot():
-    global mandethrottle
-    mandethrottle = True
 
 if __name__ == "__main__":
     usrenv = os.getenv('username')
@@ -236,7 +202,7 @@ if __name__ == "__main__":
     genbutton.grid(row=6,column=0,sticky='n')
     
     hardterminate=customtkinter.CTkButton(mf, text="terminate",width=10,command=starttermproc,fg_color='red',hover_color='DarkRed').grid(row=6,column=0,sticky='s')
-    #old piece of code
+    
     # manualdethrottle=customtkinter.CTkButton(mf, text="unthrottle",width=10,command=dethrot,fg_color='orange',hover_color='DarkOrange').grid(row=7,column=0,sticky='n')
     mysite = customtkinter.CTkButton(mf,text='My github',command=openbrowser,width=10).grid(row=8,column=0)
     
