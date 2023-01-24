@@ -3,14 +3,14 @@ import os;import random;import threading;import time
 import customtkinter
 import webbrowser
 from urllib.parse import urlparse, unquote
-import requests;import threading;from colorama import init,Fore
+import requests;from io import BytesIO;import threading;from PIL import Image as PILIMAGE;from colorama import init,Fore;from selenium import webdriver;from selenium.webdriver.common.by import By;from selenium.webdriver.support import expected_conditions as EC;from selenium.webdriver.support.ui import WebDriverWait;from selenium.webdriver.common.action_chains import ActionChains;from selenium import webdriver;from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 
-#tkinter theme
 customtkinter.set_appearance_mode("System") 
 customtkinter.set_default_color_theme("dark-blue")  
 
 #static values
-VERS = "v2.0.5"
+APIKEY ="AIzaSyDCvp5MTJLUdtBYEKYWXJrlLzu1zuKM6Xw"
+
 STYLES = sorted(['realistic', 'expressionism', 'figure', 'hdr', 'spectral',
           'comic', 'soft touch', 'splatter', 'flora', 'diorama',
           'abstract', 'fantastical', 'vector', 'bad trip', 'cartoonist',
@@ -76,6 +76,7 @@ STYLE_IDS={"realistic":32,
            "ukiyoe":2
            }
 
+
 def createToken():
     global APIKEY
     s = requests.Session()
@@ -96,6 +97,9 @@ def ToWebHook(data,path):
         fp.close()
     else:
         pass
+    
+
+
 
 def downloadFile(url):
     return open(unquote(urlparse(url).path.split("/")[-1]), "wb").write(requests.get(url).content)
@@ -103,6 +107,8 @@ def checkstat(idparam):
     return requests.get(f"https://paint.api.wombo.ai/api/tasks/{idparam}", headers={"authorization": "bearer " + str(TOKEN)}).json()
 
 def grab(text,style,fn,amount):
+    
+    import requests
     r1=requests.post("https://paint.api.wombo.ai/api/v2/tasks", json={"is_premium":False,"input_spec":{"prompt":text,"style":STYLE_IDS[style.lower()],"display_freq":10}},
             headers={"authorization": "bearer " + str(TOKEN),
                      "Content-Type": "text/plain;charset=UTF-8"}).json()
@@ -125,6 +131,7 @@ def grab(text,style,fn,amount):
         ToWebHook(f"**input**: `{image_name}` | **style**: `{style}` | **iter** : `{str(amount)}`",f"{os.getcwd()}\\{fn}\\{image_name}.jpg")
 
 def GetAIImages():
+    
     global mandethrottle
     display_text.set(f'>starting generation with settings:prompt = {GUIprompt.get()} | Amount = {str(GUIamount.get())} | style = {GUIstyle.get()} | Folder name = {GUIfoldername.get()}')
     time.sleep(3)
@@ -167,8 +174,11 @@ def starttermproc():
     threading.Thread(target=hardterm,args=()).start()
     
 def openbrowser():
-    
     webbrowser.open('https://github.com/CodeSyncio')
+    
+def dethrot():
+    global mandethrottle
+    mandethrottle = True
 
 if __name__ == "__main__":
     usrenv = os.getenv('username')
@@ -202,7 +212,7 @@ if __name__ == "__main__":
     genbutton.grid(row=6,column=0,sticky='n')
     
     hardterminate=customtkinter.CTkButton(mf, text="terminate",width=10,command=starttermproc,fg_color='red',hover_color='DarkRed').grid(row=6,column=0,sticky='s')
-    
+    #old piece of code
     # manualdethrottle=customtkinter.CTkButton(mf, text="unthrottle",width=10,command=dethrot,fg_color='orange',hover_color='DarkOrange').grid(row=7,column=0,sticky='n')
     mysite = customtkinter.CTkButton(mf,text='My github',command=openbrowser,width=10).grid(row=8,column=0)
     
