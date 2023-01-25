@@ -11,18 +11,6 @@ customtkinter.set_default_color_theme("dark-blue")
 #static values
 APIKEY ="AIzaSyDCvp5MTJLUdtBYEKYWXJrlLzu1zuKM6Xw"
 
-STYLES = sorted(['realistic', 'expressionism', 'figure', 'hdr', 'spectral',
-          'comic', 'soft touch', 'splatter', 'flora', 'diorama',
-          'abstract', 'fantastical', 'vector', 'bad trip', 'cartoonist',
-          'meme', 'isometric', 'retro-futurism', 'analogue', 'paint',
-          'polygon', 'gouache', 'ink', 'line-art', 'anime',
-          'malevolent', 'surreal', 'unrealistic', 'throwback', 'street art',
-          'no style', 'ghibli', 'melancholic', 'pandora', 'daydream',
-          'provenance', 'arcane', 'toasty', 'rose gold', 'wuhtercuhler',
-          'etching', 'mystical', 'dark fantasy', 'psychic', 'hd',
-          'vibrant', 'fantasy art', 'steampunk', 'festive', 'synthwave',
-          'ukiyoe'])
-
 STYLE_IDS={"realistic":32,
            "expressionism":77,
            "figure":76,
@@ -76,6 +64,7 @@ STYLE_IDS={"realistic":32,
            "ukiyoe":2
            }
 
+STYLES = sorted([i for i in STYLE_IDS])
 
 def createToken():
     global APIKEY
@@ -86,6 +75,7 @@ def createToken():
         "sdkVersion": "w:0.5.1",
     })
     r2 = s.post("https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={}".format(APIKEY))
+    
     return r2.json() if r.status_code == 200 else r.status_code
 
 TOKEN = createToken()['idToken']
@@ -98,8 +88,6 @@ def ToWebHook(data,path):
     else:
         pass
     
-
-
 
 def downloadFile(url):
     return open(unquote(urlparse(url).path.split("/")[-1]), "wb").write(requests.get(url).content)
@@ -118,15 +106,17 @@ def grab(text,style,fn,amount):
         status = requests.get(f"https://paint.api.wombo.ai/api/tasks/{r1['id']}", headers={"authorization": "bearer " + str(TOKEN)}).json()
         if "completed" in status['state']:
             break
-    print(r1['id'])
+    
     time.sleep(10)
     r2 = requests.get(f"https://paint.api.wombo.ai/api/tasks/{r1['id']}", headers={"authorization": "bearer " + str(TOKEN)}).json()
     downloadurl=r2['result']['final']
     imagefile = requests.get(downloadurl)
     image_name = text.replace(" ", "_").lower()
     image_name = image_name + "-" + str(amount)
-    with open(f"{os.getcwd()}\\{fn}\\{image_name}.jpg",'wb') as f:
+    with open(os.path.join(os.getcwd()+"\\"+fn+"\\"+image_name+".jpg"),'wb') as f:
         f.write(imagefile.content)
+    print(Fore.GREEN+f"SUCCES | Completed image [{amount}] with ID [{r1['id']}]")
+    
     if GUIHook.get() !="":
         ToWebHook(f"**input**: `{image_name}` | **style**: `{style}` | **iter** : `{str(amount)}`",f"{os.getcwd()}\\{fn}\\{image_name}.jpg")
 
@@ -135,14 +125,14 @@ def GetAIImages():
     global mandethrottle
     display_text.set(f'>starting generation with settings:prompt = {GUIprompt.get()} | Amount = {str(GUIamount.get())} | style = {GUIstyle.get()} | Folder name = {GUIfoldername.get()}')
     time.sleep(3)
-    init(autoreset=True)
+    
     print(Fore.LIGHTBLACK_EX+f"{', '.join(STYLES)}")
     style = GUIstyle.get()
     text = GUIprompt.get()
     am = int(GUIamount.get())
     fn = GUIfoldername.get()
     try:
-        os.mkdir(os.getcwd()+'\\'+fn)
+        os.mkdir(os.path.join(os.getcwd()+'\\'+fn))
     except:
         pass
     for i in range(int(am)):
@@ -151,13 +141,18 @@ def GetAIImages():
             break
         display_text.set(f">Generating image [{i+1}]  ({str(round((i+1)/int(am)*100))}%)")
         threading.Thread(target=grab,args=((text),(style),(fn),(i))).start()
+        
+        print(Fore.CYAN+f"THREAD | New thread started for image [{i}]")
+                          
         if int(am) <=10:
             pass
         else:
-            time.sleep(0.5)
-    display_text.set('>Done generating images')
+            time.sleep(0.25)
     time.sleep(5)
-    display_text.set(f">styles:{', '.join(STYLES)}")
+    display_text.set('>Done generating images')
+    print(Fore.LIGHTGREEN_EX+f"DONE  | Completed request for [{am}] images with prompt [{text}] and style [{style}]")
+    time.sleep(5)
+    
     
 def hardterm():
     global emergencystop
@@ -181,6 +176,7 @@ def dethrot():
     mandethrottle = True
 
 if __name__ == "__main__":
+    init(autoreset=True)
     usrenv = os.getenv('username')
     mandethrottle = False
     throttled = False
