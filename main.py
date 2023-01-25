@@ -113,7 +113,7 @@ def grab(text,style,fn,amount):
     imagefile = requests.get(downloadurl)
     image_name = text.replace(" ", "_").lower()
     image_name = image_name + "-" + str(amount)
-    with open(os.path.join(os.getcwd()+"\\"+fn+"\\"+image_name+".jpg"),'wb') as f:
+    with open(os.path.join(os.getcwd(),fn,image_name+".jpg"),'wb') as f:
         f.write(imagefile.content)
     print(Fore.GREEN+f"SUCCES | Completed image [{amount}] with ID [{r1['id']}]")
     
@@ -132,7 +132,7 @@ def GetAIImages():
     am = int(GUIamount.get())
     fn = GUIfoldername.get()
     try:
-        os.mkdir(os.path.join(os.getcwd()+'\\'+fn))
+        os.mkdir(os.path.join(os.getcwd(),fn))
     except:
         pass
     for i in range(int(am)):
@@ -150,7 +150,7 @@ def GetAIImages():
             time.sleep(0.5)
     time.sleep(5)
     display_text.set('>Done generating images')
-    print(Fore.LIGHTGREEN_EX+f"DONE  | Completed request for [{am}] images with prompt [{text}] and style [{style}]")
+    print(Fore.LIGHTGREEN_EX+f"SENT   | All requests sent for [{am}] images with prompt [{text}] and style [{style}]")
     time.sleep(5)
     
     
