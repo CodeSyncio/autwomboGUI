@@ -147,7 +147,7 @@ def GetAIImages():
         if int(am) <=10:
             pass
         else:
-            time.sleep(0.25)
+            time.sleep(0.5)
     time.sleep(5)
     display_text.set('>Done generating images')
     print(Fore.LIGHTGREEN_EX+f"DONE  | Completed request for [{am}] images with prompt [{text}] and style [{style}]")
