@@ -21,6 +21,7 @@ class AutWombGUI:
 
         self.STYLE_IDS = {
             "realistic": 32,
+            "realistic v2":78,
             "expressionism": 77,
             "figure": 76,
             "hdr": 52,
