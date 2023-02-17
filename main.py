@@ -20,6 +20,10 @@ class AutWombGUI:
         self.APIKEY = "AIzaSyDCvp5MTJLUdtBYEKYWXJrlLzu1zuKM6Xw"
 
         self.STYLE_IDS = {
+            "VFX v2":79,
+            "flora v2":81,
+            "bulliojourney v2":84,
+            "realistic v2":78,
             "realistic": 32,
             "realistic v2":78,
             "expressionism": 77,
