@@ -20,12 +20,11 @@ class AutWombGUI:
         self.APIKEY = "AIzaSyDCvp5MTJLUdtBYEKYWXJrlLzu1zuKM6Xw"
 
         self.STYLE_IDS = {
-            "VFX v2":79,
-            "flora v2":81,
-            "bulliojourney v2":84,
-            "realistic v2":78,
+            "VFX_v2":79,
+            "flora_v2":81,
+            "bulliojourney_v2":84,
+            "realistic_v2":78,
             "realistic": 32,
-            "realistic v2":78,
             "expressionism": 77,
             "figure": 76,
             "hdr": 52,
@@ -112,7 +111,7 @@ class AutWombGUI:
     def grab(self, text, style, fn, amount):
 
         import requests
-        r1 = requests.post("https://paint.api.wombo.ai/api/v2/tasks", json={"is_premium": False, "input_spec": {"prompt": text, "style": self.STYLE_IDS[style.lower()], "display_freq": 10}},
+        r1 = requests.post("https://paint.api.wombo.ai/api/v2/tasks", json={"is_premium": False, "input_spec": {"prompt": text, "style": self.STYLE_IDS[style], "display_freq": 10}},
                            headers={"authorization": "bearer " + str(self.TOKEN),
                                     "Content-Type": "text/plain;charset=UTF-8"}).json()
         time.sleep(2)
