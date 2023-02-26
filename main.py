@@ -1,3 +1,6 @@
+#to change file saving behaviour, please read the comments on the last few lines
+
+
 # ---<imports>---
 import os
 import threading
@@ -9,10 +12,10 @@ import requests
 import threading
 from colorama import init, Fore
 
-
-class AutWombGUI:
-    def __init__(self) -> None:
-
+class AutWombGUI():
+    def __init__(self,deleteoutput=False) -> None:
+        self.deleteoutput = deleteoutput
+        
         customtkinter.set_appearance_mode("System")
         customtkinter.set_default_color_theme("dark-blue")
 
@@ -95,13 +98,17 @@ class AutWombGUI:
 
     def ToWebHook(self, data, path):
         if len(self.GUIHook.get()) != 0:
-            fp = open(path, 'rb')
-            resp = requests.post(self.GUIHook.get(), files={
-                                 "file": fp}, data={"content": data})
-            fp.close()
+            try:
+                fp = open(path, 'rb')
+                resp = requests.post(self.GUIHook.get(), files={
+                                    "file": fp}, data={"content": data})
+                fp.close()
+            except:
+                pass
         else:
             pass
-
+        if self.deleteoutput is True:
+            os.remove(path)
     def downloadFile(self, url):
         return open(unquote(urlparse(url).path.split("/")[-1]), "wb").write(requests.get(url).content)
 
@@ -124,7 +131,7 @@ class AutWombGUI:
 
         time.sleep(10)
         r2 = requests.get(f"https://paint.api.wombo.ai/api/tasks/{r1['id']}", headers={
-                          "authorization": "bearer " + str(self.TOKEN)}).json()
+                        "authorization": "bearer " + str(self.TOKEN)}).json()
         downloadurl = r2['result']['final']
         imagefile = requests.get(downloadurl)
         image_name = text.replace(" ", "_").lower()
@@ -132,12 +139,20 @@ class AutWombGUI:
         with open(os.path.join(os.getcwd(), fn, image_name+".jpg"), 'wb') as f:
             f.write(imagefile.content)
         print(Fore.GREEN +
-              f"SUCCES | Completed image [{amount}] with ID [{r1['id']}]")
+            f"SUCCES | Completed image [{amount}] with ID [{r1['id']}]")
 
         if self.GUIHook.get() != "":
             self.ToWebHook(
                 f"**input**: `{image_name}` | **style**: `{style}` | **iter** : `{str(amount)}`", f"{os.getcwd()}\\{fn}\\{image_name}.jpg")
-
+        
+        if int(amount) == int(self.GUIamount.get())-1 and self.deleteoutput is True:
+            while os.path.exists(os.path.join(os.getcwd(), fn)):
+                time.sleep(1)
+                try:
+                    os.rmdir(os.path.join(os.getcwd(), fn))
+                    break
+                except:
+                    pass
     def GetAIImages(self):
 
         global mandethrottle
@@ -173,7 +188,7 @@ class AutWombGUI:
         time.sleep(5)
         self.display_text.set('>Done generating images')
         print(Fore.LIGHTGREEN_EX +
-              f"SENT   | All requests sent for [{am}] images with prompt [{text}] and style [{style}]")
+            f"SENT   | All requests sent for [{am}] images with prompt [{text}] and style [{style}]")
         time.sleep(5)
 
     def hardterm(self):
@@ -222,7 +237,7 @@ class AutWombGUI:
         self.display_text = customtkinter.StringVar()
         self.display_text.set(f">")
         out = customtkinter.CTkLabel(mf, textvariable=self.display_text, width=420, height=200,
-                                     anchor=customtkinter.NW, wraplength=200).grid(row=6, column=1, sticky='w')
+                                    anchor=customtkinter.NW, wraplength=200).grid(row=6, column=1, sticky='w')
         self.GUIprompt = customtkinter.CTkEntry(
             mf, width=400, placeholder_text="the eiffel tower landing on the moon...")
         self.GUIamount = customtkinter.CTkEntry(
@@ -268,5 +283,6 @@ class AutWombGUI:
 
 
 if __name__ == "__main__":
-    app = AutWombGUI()
+    app = AutWombGUI(deleteoutput=False) #replace False with True if you want images to be deleted
+                                         #after they are sent to the webhook
     app.main()
