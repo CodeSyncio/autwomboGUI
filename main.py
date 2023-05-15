@@ -116,7 +116,7 @@ class AutWombGUI():
         return open(unquote(urlparse(url).path.split("/")[-1]), "wb").write(requests.get(url).content)
 
     def checkstat(self, idparam):
-        return requests.get(f"https://paint.api.wombo.ai/api/tasks/{idparam}", headers={"authorization": "bearer " + str(self.TOKEN)}).json()
+        return requests.get(f"https://paint.api.wombo.ai/api/v2/tasks/{idparam}", headers={"authorization": "bearer " + str(self.TOKEN)}).json()
 
     def grab(self, text, style, fn, amount):
 
@@ -127,13 +127,13 @@ class AutWombGUI():
         time.sleep(2)
         while True:
             time.sleep(0.5)
-            status = requests.get(f"https://paint.api.wombo.ai/api/tasks/{r1['id']}", headers={
+            status = requests.get(f"https://paint.api.wombo.ai/api/v2/tasks/{r1['id']}", headers={
                                   "authorization": "bearer " + str(self.TOKEN)}).json()
             if "completed" in status['state']:
                 break
 
         time.sleep(10)
-        r2 = requests.get(f"https://paint.api.wombo.ai/api/tasks/{r1['id']}", headers={
+        r2 = requests.get(f"https://paint.api.wombo.ai/api/v2/tasks/{r1['id']}", headers={
                         "authorization": "bearer " + str(self.TOKEN)}).json()
         downloadurl = r2['result']['final']
         imagefile = requests.get(downloadurl)
